@@ -13,7 +13,7 @@ from telegram.ext import (
     ContextTypes
 )
 
-# --- Bot sozlamalari ---
+# --- Bot sozlamalari dsfjfhdjksdhfjsdhfsjkdf ---
 BOT_TOKEN = "8452330949:AAE-FY9aBwNWXwvSlOwLc_HN3ibuCcS8wIk" 
 STICKER_ID = "CAACAgIAAxkBAAE5KzlolgmREymPXI-BviRA_HlPPfaqdAACmxsAAhjAOEkY9cLcaS6HBTYE"
 
