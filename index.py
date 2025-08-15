@@ -12,12 +12,17 @@ from telegram.ext import (
     filters,
     ContextTypes
 )
+import os
 
-# --- Bot sozlamalari dsfjfhdjksdhfjsdhfsjkdf ---
-BOT_TOKEN = "8452330949:AAE-FY9aBwNWXwvSlOwLc_HN3ibuCcS8wIk" 
+# --- Sozlamalar ---
+BOT_TOKEN = "8452330949:AAE-FY9aBwNWXwvSlOwLc_HN3ibuCcS8wIk"
+CHANNEL_ID = -1002677233135
 STICKER_ID = "CAACAgIAAxkBAAE5KzlolgmREymPXI-BviRA_HlPPfaqdAACmxsAAhjAOEkY9cLcaS6HBTYE"
 
-# --- Asosiy menyu va pastki menyular ---
+# Word fayl yo‘li (serverga yuklaganda to‘g‘ri joyga o‘zgartirasiz)
+WORD_FILE_PATH = r"C:\Users\user\Desktop\MadinaFarmContact\ДОГОВОР МАДИНА ФАРМ СИНТЕЗ.docx"
+
+# --- Menyular ---
 main_menu = [
     [KeyboardButton("📝 E'tiroz va takliflar.")],
     [KeyboardButton("📞 Xodimlar bilan bog'lanish.")],
@@ -43,11 +48,9 @@ contact_menu = [
     [KeyboardButton("⬅️ Orqaga")]
 ]
 
-# --- Matnni normallashtirish ---
 def _norm(s: str) -> str:
     return " ".join(s.strip().lower().split())
 
-# --- Javoblar ---
 menu_responses = {
     "feedback": {
         _norm("Sifat va Nazorat"): "Sizda {text} bo‘yicha e‘tiroz va takliflaringiz bo‘lsa matn, video yoki ovozli xabar yuboring.",
@@ -97,7 +100,7 @@ menu_responses = {
     "main": {}
 }
 
-# --- /start komandasi ---
+# --- /start ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_sticker(STICKER_ID)
@@ -105,7 +108,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
     desc_text = "Doim biz bilan bo`ling!"
-
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📱 IOS", url="https://apps.apple.com/us/app/madina-farm/id6739846964")],
         [InlineKeyboardButton("📱 Android", url="https://play.google.com/store/apps/details?id=com.mpsintez.madinapharmsintez_app")],
@@ -122,7 +124,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text_raw = update.message.text or ""
     text_norm = _norm(text_raw)
 
-    # Dorixona nomini kiritish
+    # Har qanday xabarni kanalda forward qilish
+    try:
+        await update.message.forward(chat_id=CHANNEL_ID)
+    except Exception as e:
+        print("Forward xatosi:", e)
+
     if context.user_data.get("waiting_reply_after_salom"):
         context.user_data["waiting_reply_after_salom"] = False
         context.user_data["menu"] = "main"
@@ -146,18 +153,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 📍 Biz haqimizda
     if text_norm == _norm("📍biz haqimizda."):
-        await update.message.reply_text("MFS")
+        await update.message.reply_text("Madina Farm Sintez — 2013-yildan beri sog‘lig‘ingiz posboni! 10 kishilik jamoa sifatida yo‘lga chiqqan biz, bugun 150 dan ortiq malakali xodim bilan Buxoro, Navoiy, Samarqand, Toshkent, Qashqadaryo va Surxandaryo viloyatlaridagi dorixonalarga sifatli dori vositalarini yetkazib beramiz. Sizning salomatligingiz — bizning ustuvor vazifamiz!")
         await update.message.reply_location(latitude=39.74431634817175, longitude=64.48376947514521)
         return
 
     # 📑 Sertifikat olish
     if text_norm == _norm("📑 dori vositalari uchun sertifikat olish."):
-        await update.message.reply_text("MFS")
+        await update.message.reply_text("Sertifikat olish uchun murojaat qiling:\n+998912439200\n+998913119200")
         return
 
-    # ✒️ Hamkorlik
-    if text_norm == _norm("✒️ Hamkorlik."):
-        await update.message.reply_text("MFS")
+    # ✒️ Hamkorlik — Word fayl yuborish
+    if text_norm == _norm("✒️ hamkorlik."):
+        if os.path.exists(WORD_FILE_PATH):
+            await update.message.reply_document(document=open(WORD_FILE_PATH, "rb"))
+        else:
+            await update.message.reply_text("❌ Fayl topilmadi. Administrator bilan bog‘laning.")
         return
 
     # ⬅️ Orqaga
@@ -183,14 +193,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(resp)
             return
 
-    # Agar hech nima mos kelmasa
     await update.message.reply_text("Menyudan tugmani tanlang 🔘")
 
 # --- Botni ishga tushirish ---
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     print("Bot ishga tushdi...")
     app.run_polling()
 
